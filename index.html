@@ -1,0 +1,25 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>镜牢攻略 · 名与蛛之镜（旧版）</title><link rel="stylesheet" href="style.css"></head><body>
+<header><div class="brand"><span class="logo">◈</span><div><h1>镜像迷宫攻略 · 名与蛛之镜</h1><small>第7赛季（旧版）· 数据来自 <a href="https://limbuscompany.huijiwiki.com/wiki/%E5%90%8D%E4%B8%8E%E8%9B%9B%E4%B9%8B%E9%95%9C" target="_blank">边狱公司中文维基</a></small></div></div>
+<nav><button data-v="floor" class="on">按楼层</button><button data-v="pack">主题卡包</button><button data-v="gift">饰品图鉴</button><button data-v="recipe">合成</button></nav></header>
+<main>
+<section id="v-floor" class="view on">
+ <div class="bar"><div class="seg" id="modeSeg"></div></div>
+ <p class="hint">楼层与卡包对应取自维基 Data:Mirrordungeon-theme-floor.json（西西弗之镜更新前的版本）。⭐=该卡包专属饰品。平行叠加/极限模式维基未区分具体层，显示为整个区间。</p>
+ <div id="floorList"></div></section>
+<section id="v-pack" class="view">
+ <div class="bar"><input id="pq" placeholder="搜索卡包名 / 头目 / 专属饰品…"><select id="pMode"></select><select id="pFloor"></select><select id="pType"></select></div>
+ <div id="packGrid" class="pgrid"></div></section>
+<section id="v-gift" class="view">
+ <div class="bar"><input id="gq" placeholder="搜索饰品名或效果（支持模糊）…">
+ <select id="gKw"></select><select id="gTier"></select><select id="gSin"></select><select id="gPack"></select><select id="gFloor"></select>
+ <label class="chk"><input type="checkbox" id="gHard">仅困难/特殊获取</label><label class="chk"><input type="checkbox" id="gMd">仅镜像迷宫</label></div>
+ <div id="gCount" class="hint"></div><div id="giftGrid" class="ggrid"></div></section>
+<section id="v-recipe" class="view">
+ <div class="bar"><input id="rq" placeholder="搜索配方中的饰品…"></div>
+ <p class="hint">来源：<a target="_blank" href="https://limbuscompany.huijiwiki.com/wiki/%E9%95%9C%E5%83%8F%E8%BF%B7%E5%AE%ABE.G.O%E9%A5%B0%E5%93%81%E5%90%88%E6%88%90">镜像迷宫E.G.O饰品合成</a>（含“主题卡包限定合成配方”）</p>
+ <div id="recipeList"></div></section>
+</main>
+<div id="modal" class="modal"><div class="mbox"><button class="x" onclick="closeM()">✕</button><div id="mbody"></div></div></div>
+<footer>非官方整理 · 内容源自 limbuscompany.huijiwiki.com（CC BY-NC-SA）· 图片版权归 Project Moon · 未录入的内容不做推测</footer>
+<script src="data.js"></script><script src="app.js"></script></body></html>
