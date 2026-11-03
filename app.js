@@ -11,14 +11,18 @@ const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"]/g,c=>(
 const ROMAN=['0','I','II','III','IV','V','VI'];const MODES=['普通','困难'];const MODE_FULL=['普通','困难','困难 6-10F（原平行叠加）','困难 11-15F（原极限）'];
 const fTag=f=>f.modeIdx===2?'困难 6-10F':f.modeIdx===3?'困难 11-15F':`${f.mode} ${f.floors.join('、')}F`;
 const img=(src,alt)=>src?`<img loading="lazy" src="${src}" alt="${esc(alt)}" onerror="this.outerHTML='<div class=ph>无图</div>'">`:`<div class="ph">无图</div>`;
+const KW_FILES={'烧伤':'assets/keywords/烧伤.png','流血':'assets/keywords/流血.png','震颤':'assets/keywords/震颤.png','破裂':'assets/keywords/破裂.png','呼吸法':'assets/keywords/呼吸法.png','沉沦':'assets/keywords/沉沦.png','充能':'assets/keywords/充能.png','斩击':'assets/keywords/斩击.png','突刺':'assets/keywords/突刺.png','打击':'assets/keywords/打击.png','泛用':'assets/keywords/泛用.svg','暂无分类':'assets/keywords/暂无分类.svg','未录入':'assets/keywords/未录入.svg'};
+const kwKey=k=>{k=String(k||'').trim();return k||'未录入'};
+const kwIcon=(k,sz='')=>{const key=kwKey(k),src=KW_FILES[key]||KW_FILES['未录入'];return `<img class="kwi${sz?' '+sz:''}" src="${src}" alt="${esc(key)}" title="${esc(key)}" loading="lazy" onerror="this.style.visibility='hidden'">`};
+const kwTag=k=>{const key=kwKey(k);return `<span class="tag kw">${kwIcon(key,'sm')}${esc(key)}</span>`};
 const NEW='<span class="newb">NEW</span>',newB=x=>x&&x.isNew?NEW:'',chgB=g=>g&&g.changed?`<span class="chgb" title="${esc(g.changed.join('；'))}">本季调整</span>`:'';
-const gIcon=g=>`<div class="gi">${img(g.img,g.name)}</div>`;
+const gIcon=g=>`<div class="gi">${img(g.img,g.name)}${kwIcon(g.keyword,'sm')}</div>`;
 const tierTxt=t=>t?`<span class="tier">${ROMAN[t]||t}级</span>`:'<span class="tier">剧情</span>';
 function packFloors(p){return p.floors.map(fTag).join('；')||'未录入'}
 function packCard(p,hit){const ex=p.exclusive.map(id=>G[id]).filter(Boolean);const H=hit&&new Set(hit.map(g=>g.id));const rw=REWARD[p.id];
  return `<div class="pc" onclick="showPack(${p.id})"><div class="ban" style="${p.img?`background-image:url('${p.img}')`:''}">${p.img?'':'<div class=ph>无卡包图</div>'}</div>
  <div class="nm">${esc(p.name)}${newB(p)}</div><div style="padding:0 6px 4px">${p.difficulty==='DIFFICULT'?'<span class="tag h">困难</span>':''}${p.type!=='普通'?`<span class="tag r">${esc(p.type)}</span>`:''}</div>
- <div class="ex">${ex.map(g=>`<img class="${H?(H.has(g.id)?'hit':'dim'):''}" data-gid="${g.id}" alt="⭐${esc(g.name)}" src="${g.img}" onerror="this.remove()">`).join('')}</div>${rw?`<div class="rw ${H?(H.has(rw.id)?'hit':'dim'):''}" data-gid="${rw.id}" onclick="event.stopPropagation();showGift('${rw.id}')"><span class="trophy" title="沿用上赛季数据，新赛季待确认">🏆 通关固定奖励 <i>沿用上赛季·待确认</i></span><img src="${rw.img}" alt="${esc(rw.name)}" onerror="this.remove()"><span class="rn">${esc(rw.name)}</span></div>`:''}${H?`<div class="hitl">✔ ${hit.map(g=>`${esc(g.name)}<i>${esc(g.keyword)}</i>`).join('、')}</div>`:''}</div>`}
+ <div class="ex">${ex.map(g=>`<span class="exg ${H?(H.has(g.id)?'hit':'dim'):''}" data-gid="${g.id}" title="⭐${esc(g.name)} · ${esc(g.keyword||'')}"><img alt="⭐${esc(g.name)}" src="${g.img}" onerror="this.parentNode.remove()">${kwIcon(g.keyword,'sm')}</span>`).join('')}</div>${rw?`<div class="rw ${H?(H.has(rw.id)?'hit':'dim'):''}" data-gid="${rw.id}" onclick="event.stopPropagation();showGift('${rw.id}')"><span class="trophy" title="沿用上赛季数据，新赛季待确认">🏆 通关固定奖励 <i>沿用上赛季·待确认</i></span><span class="exg"><img src="${rw.img}" alt="${esc(rw.name)}" onerror="this.parentNode.remove()">${kwIcon(rw.keyword,'sm')}</span><span class="rn">${esc(rw.name)}</span></div>`:''}${H?`<div class="hitl">✔ ${hit.map(g=>`<span class="exg"><img src="${g.img}" alt="" onerror="this.parentNode.remove()">${kwIcon(g.keyword,'sm')}</span>${esc(g.name)}`).join('、')}</div>`:''}</div>`}
 // floor view
 // legacy mode values 2 (平行叠加) / 3 (极限) map to 困难, remembering which section to scroll to
 if('scrollRestoration' in history)history.scrollRestoration='manual';
@@ -50,7 +54,7 @@ function seasonBox(){const S=D.seasonInfo;if(!S)return;const np=S.newPacks.map(i
  $('#seasonBox').innerHTML=`<div class="season"><img class="sban" src="${S.banner}" alt="西西弗之镜" onerror="this.remove()"><div class="sinfo">
  <h2>第${S.no}赛季 · ${esc(S.name)} <span class="tag">2026-10-15 开放</span></h2>
  <ul><li>新增 <b>${np.length}</b> 个卡包 ${NEW}：${np.map(p=>`<span class="m" onclick="showPack(${p.id})">${esc(p.name)}</span>`).join('、')}（1 个普通/困难，3 个困难限定）</li>
- <li>新增 <b>${ng.length}</b> 件饰品 ${NEW}：${ng.map(g=>`<span class="m" data-gid="${g.id}" onclick="showGift('${g.id}')">${esc(g.name)}</span>`).join('、')}；另有 ${cg.length} 件调整：${cg.map(g=>`<span class="m" data-gid="${g.id}" onclick="showGift('${g.id}')">${esc(g.name)}</span>`).join('、')}</li>
+ <li>新增 <b>${ng.length}</b> 件饰品 ${NEW}：${ng.map(g=>`<span class="m" data-gid="${g.id}" onclick="showGift('${g.id}')"><span class="exg"><img src="${g.img}" onerror="this.parentNode.remove()">${kwIcon(g.keyword,'sm')}</span>${esc(g.name)}</span>`).join('、')}；另有 ${cg.length} 件调整：${cg.map(g=>`<span class="m" data-gid="${g.id}" onclick="showGift('${g.id}')"><span class="exg"><img src="${g.img}" onerror="this.parentNode.remove()">${kwIcon(g.keyword,'sm')}</span>${esc(g.name)}</span>`).join('、')}</li>
  <li>敌人等级提升至 Lv65；困难模式可能出现「超级商店」（商品+3、可最多 5 件合成等），Boss 奖励饰品 4 选 2</li>
  <li>镜像投影/成就、极限模式隐藏 Boss 官方称之后实装</li></ul>
  <p class="hint">数据：灰机维基 ${esc(S.revs.themes)}、${esc(S.revs.gifts)}、${esc(S.revs.enemy)}；${esc(S.revs.giftchoose)}。机制说明参考 <a target="_blank" href="${S.notice}">官方公告</a> 与 <a target="_blank" href="${S.wikigg}">wiki.gg</a>。最后更新：2026-10-19（北京时间）</p></div></div>`}
@@ -92,7 +96,7 @@ const srcLinks=ks=>ks.map(k=>HB_SRC[k]?`<a target="_blank" href="${HB_SRC[k][0]}
 function hbCard(h){const I=HB_INFO[h.boss]||{};const on=sel.size?(sel.has(h.g.keyword||'未录入')?'hit':'dim'):'';const c=I.cue||{};
  return `<div class="hbc ${on}"><div class="hbtop">${I.img?`<img class="hbp" src="${I.img}" alt="" onerror="this.remove()">`:''}<div class="hbm"><div class="hbn">${esc(h.boss)} · ${esc(I.who||'')}</div><div class="hint">同行：${esc(I.ally||'未录入')}</div>
  <div class="hbcue ${c.st||''}">${c.icon?`<img src="${c.icon}" alt="">`:'<span class="noicon">—</span>'}<div><b>识别：</b>${esc(c.txt||'未录入')} <span class="tag ${c.st==='ok'?'r':'h'}">${c.st==='ok'?'多源确认':'无法事先区分'}</span><div class="hint">${esc(I.cueNote||'')}</div><div class="hsrc">来源：${srcLinks(I.cueSrc||[])}</div></div></div>
- <div class="hbrw" data-gid="${h.g.id}" onclick="showGift('${h.g.id}')">${gIcon(h.g)}<div><div class="t">🎁 ${esc(h.g.name)}${tierTxt(h.g.tier)}</div><span class="tag">${esc(h.g.keyword)}</span>${h.g.cost?`<span class="tag">商店价 ${h.g.cost}</span>`:''}</div></div></div></div>
+ <div class="hbrw" data-gid="${h.g.id}" onclick="showGift('${h.g.id}')">${gIcon(h.g)}<div><div class="t">🎁 ${esc(h.g.name)}${tierTxt(h.g.tier)}</div>${kwTag(h.g.keyword)}${h.g.cost?`<span class="tag">商店价 ${h.g.cost}</span>`:''}</div></div></div></div>
  <details class="hbd"><summary>数据 · 机制 · 打法</summary>
  <h5>📊 数据（名与蛛之镜 MD 版）</h5><ul>${(I.stats||[]).map(s=>`<li>${esc(s)}</li>`).join('')}</ul><div class="hsrc">来源：${srcLinks(I.statSrc||[])}</div>
  <h5>⚔ 伤害类型 / 罪孽</h5><p>${esc(I.dmg||'未录入')}</p>
@@ -129,20 +133,28 @@ function renderGifts(){const q=$('#gq').value.trim().toLowerCase(),kw=$('#gKw').
  if(q){r=r.map(g=>[g,Math.max(fuzzy(g.name.toLowerCase(),q),...(g.aliases||[]).map(x=>x.includes(q)?2:0))*3+((g.desc+g.desc1+g.desc2).toLowerCase().includes(q)?1:0)]).filter(x=>x[1]).sort((a,b)=>b[1]-a[1]).map(x=>x[0])}
  $('#gCount').textContent=`共 ${r.length} 件饰品`;
  $('#giftGrid').innerHTML=r.slice(0,400).map(g=>`<div class="gc" onclick="showGift('${g.id}')" data-gid="${g.id}">${gIcon(g)}<div><div class="t">${esc(g.name)}${tierTxt(g.tier)}${newB(g)}${chgB(g)}</div>
- <div><span class="tag">${esc(g.keyword)}</span>${g.sin?`<span class="tag">${esc(g.sin)}</span>`:''}${g.special?`<span class="tag h">${esc(srcLabel(g))}</span>`:''}</div><div class="d">${esc(g.desc)}</div></div></div>`).join('')+(r.length>400?'<p class=hint>仅显示前400条，请缩小筛选范围</p>':'')}
+ <div>${kwTag(g.keyword)}${g.sin?`<span class="tag">${esc(g.sin)}</span>`:''}${g.special?`<span class="tag h">${esc(srcLabel(g))}</span>`:''}</div><div class="d">${esc(g.desc)}</div></div></div>`).join('')+(r.length>400?'<p class=hint>仅显示前400条，请缩小筛选范围</p>':'')}
 ['#gq','#gKw','#gTier','#gSin','#gPack','#gFloor','#gHard','#gMd'].forEach(s=>$(s).oninput=renderGifts);renderGifts();
 // recipes
-const mini=id=>{const g=G[id];return g?`<span class="mini"><span class="m" onclick="showGift('${id}')" data-gid="${id}"><img src="${g.img}" onerror="this.remove()">${esc(g.name)}</span></span>`:`<span class=tag>#${id} 未录入</span>`};
-function recRow(r){return `<div class="rec"><span class="tag ${r.packLimited?'r':''}">${esc(r.group)}</span>${r.inputs.map(mini).join('<span class=op>＋</span>')}<span class="op">➜</span>${mini(r.output)}</div>`}
-function renderRec(){const q=$('#rq').value.trim().toLowerCase();$('#recipeList').innerHTML=D.recipes.filter(r=>!q||[...r.inputs,r.output].some(i=>G[i]?.name.toLowerCase().includes(q))||r.group.includes(q)).map(recRow).join('')}
-$('#rq').oninput=renderRec;renderRec();
+const mini=id=>{const g=G[id];return g?`<span class="mini"><span class="m" onclick="showGift('${id}')" data-gid="${id}"><span class="exg"><img src="${g.img}" onerror="this.parentNode.remove()">${kwIcon(g.keyword,'sm')}</span>${esc(g.name)}</span></span>`:`<span class=tag>#${id} 未录入</span>`};
+function recRow(r){const gLab=r.group||'其他';const gIconHtml=KW_FILES[r.group]?kwIcon(r.group,'sm'):'';return `<div class="rec"><span class="tag ${r.packLimited?'r':''} kw">${gIconHtml}${esc(gLab)}</span>${r.inputs.map(mini).join('<span class=op>＋</span>')}<span class="op">➜</span>${mini(r.output)}</div>`}
+(()=>{const order=['烧伤','流血','震颤','破裂','呼吸法','沉沦','充能','斩击','突刺','打击'];const gs=[...new Set(D.recipes.map(r=>r.group||''))];
+ const named=gs.filter(g=>g).sort((a,b)=>{const ia=order.indexOf(a),ib=order.indexOf(b);if(ia>=0||ib>=0)return(ia<0?99:ia)-(ib<0?99:ib);return a.localeCompare(b,'zh')});
+ const opts=[['','全部体系'],...named.map(g=>[g,g])];if(gs.includes(''))opts.push(['__other__','其他（无体系标签）']);
+ opt($('#rKw'),opts)})();
+function renderRec(){const q=$('#rq').value.trim().toLowerCase(),kw=$('#rKw').value;
+ $('#recipeList').innerHTML=D.recipes.filter(r=>{
+  if(kw==='__other__'){if(r.group)return false}else if(kw&&r.group!==kw)return false;
+  if(!q)return true;return[...r.inputs,r.output].some(i=>G[i]?.name.toLowerCase().includes(q))||(r.group||'').toLowerCase().includes(q)
+ }).map(recRow).join('')||'<p class=hint>没有匹配的配方。</p>'}
+$('#rq').oninput=renderRec;$('#rKw').oninput=renderRec;renderRec();
 // modals
 function openM(h){hideTip();$('#mbody').innerHTML=h;$('#modal').classList.add('on')}function closeM(){$('#modal').classList.remove('on')}
 $('#modal').onclick=e=>{if(e.target.id==='modal')closeM()};document.onkeydown=e=>{if(e.key==='Escape')closeM()};
 function showGift(id){const g=G[id];const rs=D.recipes.filter(r=>r.output===id||r.inputs.includes(id));
  const ps=D.packs.filter(p=>p.exclusive.includes(id));
  openM(`<div class="mh">${gIcon(g)}<div><h2 style="margin:0">${esc(g.name)}${tierTxt(g.tier)}${newB(g)}${chgB(g)}</h2>${g.changed?`<div class="hint">本赛季调整：${esc(g.changed.join("；"))}（来源 Data:Egogift.json rev 150443）</div>`:""}
- <div><span class="tag">体系：${esc(g.keyword)}</span>${g.sin?`<span class="tag">罪孽：${esc(g.sin)}</span>`:''}${g.cost?`<span class="tag">商店价 ${g.cost}</span>`:''}${g.hardOnly?'<span class="tag h">困难限定</span>':''}</div>
+ <div><span class="tag kw">体系：${kwIcon(g.keyword)}${esc(g.keyword)}</span>${g.sin?`<span class="tag">罪孽：${esc(g.sin)}</span>`:''}${g.cost?`<span class="tag">商店价 ${g.cost}</span>`:''}${g.hardOnly?'<span class="tag h">困难限定</span>':''}</div>
  ${g.aliases?`<div class="hint">维基旧名：${g.aliases.map(esc).join('、')}</div>`:''}<div class="hint">出现地点：${esc(g.where||'未录入')}${g.event?' · '+esc(g.event):''}${g.special?' · 获得方式：'+esc(srcLabel(g)):''}</div></div></div>
  <div class="eff"><b>效果</b>\n${esc(g.desc||'未录入')}</div>${g.desc1?`<div class="eff"><b>强化+</b>\n${esc(g.desc1)}</div>`:''}${g.desc2?`<div class="eff"><b>强化++</b>\n${esc(g.desc2)}</div>`:''}
  ${REWARD_OF[id]?`<h4>🏆 11-15F 通关固定奖励</h4><div class="mini"><span class="m" onclick="showPack(${REWARD_OF[id].id})">${esc(REWARD_OF[id].name)}</span></div>`:''}
@@ -155,8 +167,8 @@ function showPack(id){const p=P[id];const ex=p.exclusive.map(i=>G[i]).filter(Boo
  <h2 style="margin:0">${esc(p.name)}${newB(p)}</h2>${p.isNew?'<div class="hint">西西弗之镜新增卡包（第十章相关）</div>':''}<div>${p.difficulty==='DIFFICULT'?'<span class="tag h">困难卡包</span>':'<span class="tag">普通卡包</span>'}<span class="tag r">${esc(p.type)}</span>${p.floors.length&&!p.floors.some(f=>f.modeIdx===0)?'<span class="tag h">仅困难模式</span>':''}${p.unrecordable?'<span class="tag">不计入图鉴</span>':''}</div>
  <h4>出现楼层</h4><div>${p.floors.map(f=>`<span class="tag">${fTag(f)}</span>`).join('')||'未录入'}</div>
  <h4>头目</h4><div>${p.bosses.map(b=>`<span class="tag">${esc(b.name)}</span>`).join('')||'未录入'}</div></div></div>
- ${REWARD[id]?`<h4>🏆 通关固定奖励 <small>（沿用上赛季数据，新赛季待确认）</small></h4><div class="ggrid"><div class="gc rwc" onclick="showGift('${REWARD[id].id}')" data-gid="${REWARD[id].id}">${gIcon(REWARD[id])}<div><div class="t">${esc(REWARD[id].name)}${tierTxt(REWARD[id].tier)}</div><span class="tag">${esc(REWARD[id].keyword)}</span><span class="tag h">击败关底 Boss 后自动获得</span><div class="d">${esc(REWARD[id].desc)}</div></div></div></div>`:''}
- <h4>⭐ 专属饰品（${ex.length}）</h4><div class="ggrid">${ex.map(g=>`<div class="gc" onclick="showGift('${g.id}')" data-gid="${g.id}">${gIcon(g)}<div><div class="t">${esc(g.name)}${tierTxt(g.tier)}</div><span class="tag">${esc(g.keyword)}</span><div class="d">${esc(g.desc)}</div></div></div>`).join('')||'<span class=hint>该卡包无专属饰品（仅通用饰品池）</span>'}</div>
+ ${REWARD[id]?`<h4>🏆 通关固定奖励 <small>（沿用上赛季数据，新赛季待确认）</small></h4><div class="ggrid"><div class="gc rwc" onclick="showGift('${REWARD[id].id}')" data-gid="${REWARD[id].id}">${gIcon(REWARD[id])}<div><div class="t">${esc(REWARD[id].name)}${tierTxt(REWARD[id].tier)}</div>${kwTag(REWARD[id].keyword)}<span class="tag h">击败关底 Boss 后自动获得</span><div class="d">${esc(REWARD[id].desc)}</div></div></div></div>`:''}
+ <h4>⭐ 专属饰品（${ex.length}）</h4><div class="ggrid">${ex.map(g=>`<div class="gc" onclick="showGift('${g.id}')" data-gid="${g.id}">${gIcon(g)}<div><div class="t">${esc(g.name)}${tierTxt(g.tier)}</div>${kwTag(g.keyword)}<div class="d">${esc(g.desc)}</div></div></div>`).join('')||'<span class=hint>该卡包无专属饰品（仅通用饰品池）</span>'}</div>
  ${packEvents(id)}
  <p class="hint">通用饰品池 ${p.pool.length} 件 · 来源：<a target="_blank" href="${D.sources.themes}">Data:Mirrordungeon-theme-floor.json（oldid=133145）</a>、<a target="_blank" href="https://limbuscompany.huijiwiki.com/wiki/%E9%95%9C%E5%83%8F%E8%BF%B7%E5%AE%AB-%E6%95%8C%E6%96%B9%E6%95%B0%E6%8D%AE">镜像迷宫-敌方数据</a></p>`)}
 // nav
@@ -176,7 +188,7 @@ function tipHTML(id){const g=G[id];if(!g)return '';
  const made=D.recipes.filter(r=>r.output===id),used=D.recipes.filter(r=>r.inputs.includes(id));
  const nm=i=>esc(G[i]?.name||('#'+i));
  return `<div class="th">${gIcon(g)}<div><div class="tn">${esc(g.name)}${tierTxt(g.tier)}${newB(g)}${chgB(g)}</div>
- <div><span class="tag">体系：${esc(g.keyword||'未录入')}</span>${g.sin?`<span class="tag">罪孽：${esc(g.sin)}</span>`:''}${g.cost?`<span class="tag">商店价 ${g.cost}</span>`:''}${g.hardOnly?'<span class="tag h">困难限定</span>':''}</div>
+ <div><span class="tag kw">体系：${kwIcon(g.keyword)}${esc(g.keyword||'未录入')}</span>${g.sin?`<span class="tag">罪孽：${esc(g.sin)}</span>`:''}${g.cost?`<span class="tag">商店价 ${g.cost}</span>`:''}${g.hardOnly?'<span class="tag h">困难限定</span>':''}</div>
  ${g.aliases?`<div class="tm">维基旧名：${g.aliases.map(esc).join('、')}</div>`:''}${g.where||g.event?`<div class="tm">出现：${esc(g.where||'')}${g.event?' · '+esc(g.event):''}</div>`:''}</div></div>
  <div class="td">${esc(g.desc||'效果未录入')}</div>${g.desc1?`<div class="tl">强化+</div><div class="td">${esc(g.desc1)}</div>`:''}${g.desc2?`<div class="tl">强化++</div><div class="td">${esc(g.desc2)}</div>`:''}
  ${g.packs&&g.packs.length?`<div class="tl">⭐ 专属卡包</div><div class="tm">${g.packs.map(esc).join('、')}</div>`:''}
@@ -200,12 +212,12 @@ const EV=(D.events||[]).map((e,i)=>Object.assign(e,{i}));
 const EVURL='https://limbuscompany.huijiwiki.com/wiki/';
 const evLine=t=>esc(t).replace(/⟦o:([^⟧]*)⟧/g,'<span class="eo">$1</span>').replace(/⟦ok⟧/g,'<span class="eok">成功</span>').replace(/⟦ng⟧/g,'<span class="eng">失败</span>')
  .replace(/⟦s:([^⟧]*)⟧/g,'<span class="esin">$1</span>').replace(/⟦u:([^⟧]*)⟧/g,'<span class="eitem" title="道具/效果：未在饰品数据中">$1</span>')
- .replace(/⟦g:(\d+)⟧/g,(m,id)=>{const g=G[id];return g?`<span class="eg" data-gid="${id}" onclick="event.stopPropagation();showGift('${id}')"><img src="${g.img}" onerror="this.remove()">${esc(g.name)}</span>`:`<span class="tag">#${id} 未录入</span>`});
+ .replace(/⟦g:(\d+)⟧/g,(m,id)=>{const g=G[id];return g?`<span class="eg" data-gid="${id}" onclick="event.stopPropagation();showGift('${id}')"><span class="exg"><img src="${g.img}" onerror="this.parentNode.remove()">${kwIcon(g.keyword,'sm')}</span>${esc(g.name)}</span>`:`<span class="tag">#${id} 未录入</span>`});
 const evKindTag=e=>e.kind==='exclusive'?'<span class="tag r">主题包专属</span>':`<span class="tag">通用 · ${esc(e.group)}</span>`;
 function evCard(e,open,why){const gs=e.gifts.map(i=>G[i]).filter(Boolean);
  return `<details class="ev ${e.isNew?'evnew':''}" ${open?'open':''}><summary>${e.img?`<img class="evt" loading="lazy" src="${e.img}" onerror="this.remove()">`:'<div class="evt ph">无图</div>'}<div class="evs"><div class="evn">${esc(e.name)}${e.isNew?NEW:''}${e.hasDetail?'':' <span class="tag h">未录入</span>'}</div>
  <div>${evKindTag(e)}${e.packs.map(p=>P[p]?`<span class="tag ep" onclick="event.preventDefault();event.stopPropagation();showPack(${p})">${esc(P[p].name)}</span>`:'').join('')}</div>
- ${why?`<div class="evm">匹配：${why.map(esc).join(' · ')}</div>`:''}${gs.length?`<div class="evg">${gs.map(g=>`<img src="${g.img}" data-gid="${g.id}" title="" onclick="event.preventDefault();event.stopPropagation();showGift('${g.id}')" onerror="this.remove()">`).join('')}</div>`:''}</div></summary>
+ ${why?`<div class="evm">匹配：${why.map(esc).join(' · ')}</div>`:''}${gs.length?`<div class="evg">${gs.map(g=>`<span class="exg" data-gid="${g.id}" title="${esc(g.name)} · ${esc(g.keyword||'')}" onclick="event.preventDefault();event.stopPropagation();showGift('${g.id}')"><img src="${g.img}" onerror="this.parentNode.remove()">${kwIcon(g.keyword,'sm')}</span>`).join('')}</div>`:''}</div></summary>
  <div class="evb">${e.img?`<img class="evi" loading="lazy" src="${e.img}" onerror="this.remove()">`:''}<div class="evc">${e.hasDetail?e.lines.map(l=>`<div class="el d${Math.min(l.d,4)}">${evLine(l.t)}</div>`).join(''):`<p class="hint">维基「探索事件」页尚未录入该事件（ID ${e.id}）的名称、选项与奖励，此处不做推测。</p>`}
  <p class="hint">来源：<a target="_blank" href="${EVURL}%E6%8E%A2%E7%B4%A2%E4%BA%8B%E4%BB%B6">探索事件</a>${e.page?` · <a target="_blank" href="${EVURL}${encodeURIComponent(e.page)}">${esc(e.page)}</a>`:''}${e.id?` · ID ${e.id}`:''}${e.how==='section'?' · 卡包归属依据维基「活动卡包」分节':e.how==='pool'?' · 卡包归属依据主题包数据 specialEventPool':''}</p></div></div></details>`}
 function packEvents(id){const es=EV.filter(e=>e.kind==='exclusive'&&e.packs.includes(+id));
@@ -238,10 +250,16 @@ function renderEvents(){const q=$('#eq').value.trim(),qn=SN(q),pk=$('#ePack').va
  const pkKeys=Object.keys(byPack).sort((a,b)=>(byPack[b].n?1:0)-(byPack[a].n?1:0));
  const pbox=mpList.length?`<div class="pmatch"><b>匹配到卡包（${mpList.length}）：</b>${mpList.map(p=>{const n=EV.filter(e=>e.kind==='exclusive'&&e.packs.includes(p.id)).length;return `<span class="tag ep" onclick="showPack(${p.id})">${esc(p.name)}${p.isNew?' NEW':''}</span><small>${n?n+' 个专属事件':'维基未记载专属事件'}</small>`}).join(' ')}${mpList.some(p=>!EV.some(e=>e.kind==='exclusive'&&e.packs.includes(p.id)))?'<div class="hint">未记载专属事件的卡包，游戏中可能只出现通用事件。</div>':''}</div>`:'';
  const gm=qn?D.gifts.filter(g=>[g.name,...(g.aliases||[])].some(x=>SN(x).includes(qn))):[];const gNo=gm.filter(g=>!EV.some(e=>e.gifts.includes(String(g.id))));
- const gbox=gNo.length?`<div class="hint">另有同名/含该词的饰品 ${gNo.slice(0,8).map(g=>`<span class="eg" data-gid="${g.id}" onclick="showGift('${g.id}')"><img src="${g.img}" onerror="this.remove()">${esc(g.name)}</span>`).join('')}${gNo.length>8?` 等 ${gNo.length} 件`:''}：没有任何事件以其为奖励。</div>`:'';
+ const gbox=gNo.length?`<div class="hint">另有同名/含该词的饰品 ${gNo.slice(0,8).map(g=>`<span class="eg" data-gid="${g.id}" onclick="showGift('${g.id}')"><span class="exg"><img src="${g.img}" onerror="this.parentNode.remove()">${kwIcon(g.keyword,'sm')}</span>${esc(g.name)}</span>`).join('')}${gNo.length>8?` 等 ${gNo.length} 件`:''}：没有任何事件以其为奖励。</div>`:'';
  $('#eventList').innerHTML=pbox+gbox+((ex.length?`<div class="sec-h">🎲 主题包专属事件（${ex.length}）</div>`+pkKeys.map(kk=>`<div class="floor"><h3>${esc(kk)}${byPack[kk].n?NEW:''} <small>${byPack[kk].e.length} 个</small></h3><div class="evl">${byPack[kk].e.map(card).join('')}</div></div>`).join(''):'')
   +(ge.length?`<div class="sec-h" id="sec-generic">🌐 通用事件（${ge.length}）</div><p class="hint">不属于任何卡包专属池的事件，按维基「镜像迷宫」各赛季分节归类（表示该事件引入的赛季）。</p>`+Object.keys(byGrp).map(g=>`<div class="floor"><h3>通用 · ${esc(g)} <small>${byGrp[g].length} 个</small></h3><div class="evl">${byGrp[g].map(card).join('')}</div></div>`).join(''):'')
   ||'<p class="hint">没有匹配的事件。</p>');
  const full=EV.filter(e=>e.hasDetail).length;
  $('#eInfo').innerHTML=`共 ${EV.length} 个事件：主题包专属 ${EV.filter(e=>e.kind==='exclusive').length}、通用 ${EV.filter(e=>e.kind==='generic').length}；已录入选项/奖励 ${full}，未录入 ${EV.length-full}。当前显示 ${ex.length+ge.length}。来源：<a target="_blank" href="${EVURL}%E6%8E%A2%E7%B4%A2%E4%BA%8B%E4%BB%B6">探索事件</a>（rev 149995）+ 主题包数据 specialEventPool（rev 149992）。`}
 ['input','change'].forEach(t=>{$('#eq').addEventListener(t,renderEvents);});$('#ePack').onchange=renderEvents;$('#eKind').onchange=renderEvents;renderEvents();
+
+// ===== page zoom =====
+(()=>{const ZS=[0.75,1,1.25,1.5];let z=1;try{const s=parseFloat(localStorage.getItem('mdZoom'));if(ZS.includes(s))z=s}catch(e){}
+ const apply=()=>{document.documentElement.style.zoom=z;document.querySelectorAll('.zoomctl button').forEach(b=>b.classList.toggle('on',Math.abs(+b.dataset.z-z)<1e-6));try{localStorage.setItem('mdZoom',z)}catch(e){}};
+ const box=document.querySelector('.zoomctl');if(box)box.onclick=e=>{const b=e.target.closest('button[data-z]');if(!b)return;z=+b.dataset.z;apply()};
+ apply()})();

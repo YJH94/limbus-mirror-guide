@@ -1,7 +1,8 @@
 <!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>镜牢攻略 · 西西弗之镜（第8赛季）</title><link rel="stylesheet" href="style.css"></head><body>
 <header><div class="brand"><span class="logo">◈</span><div><h1>镜像迷宫攻略 · 西西弗之镜</h1><small>第8赛季 · 数据来自 <a href="https://limbuscompany.huijiwiki.com/wiki/%E9%95%9C%E5%83%8F%E8%BF%B7%E5%AE%AB" target="_blank">边狱公司中文维基</a></small></div></div>
-<nav><button data-v="floor" class="on">按楼层</button><button data-v="pack">主题卡包</button><button data-v="gift">饰品图鉴</button><button data-v="event">事件</button><button data-v="recipe">合成</button></nav></header>
+<nav><button data-v="floor" class="on">按楼层</button><button data-v="pack">主题卡包</button><button data-v="gift">饰品图鉴</button><button data-v="event">事件</button><button data-v="recipe">合成</button></nav>
+<div class="zoomctl" title="页面整体缩放（记住偏好）"><span class="zlbl">缩放</span><button type="button" data-z="0.75">75%</button><button type="button" data-z="1" class="on">100%</button><button type="button" data-z="1.25">125%</button><button type="button" data-z="1.5">150%</button></div></header>
 <main>
 <section id="v-floor" class="view on">
  <div id="seasonBox"></div>
@@ -21,7 +22,7 @@
  <div class="bar"><input id="eq" placeholder="搜索卡包名 / 事件名 / 奖励饰品名 / 选项文本…"><select id="ePack"></select><select id="eKind"><option value="">全部事件</option><option value="exclusive">仅主题包专属</option><option value="generic">仅通用事件</option></select></div>
  <p class="hint" id="eInfo"></p><div id="eventList"></div></section>
 <section id="v-recipe" class="view">
- <div class="bar"><input id="rq" placeholder="搜索配方中的饰品…"></div>
+ <div class="bar"><input id="rq" placeholder="搜索配方中的饰品…"><select id="rKw"></select></div>
  <p class="hint">来源：<a target="_blank" href="https://limbuscompany.huijiwiki.com/wiki/%E9%95%9C%E5%83%8F%E8%BF%B7%E5%AE%ABE.G.O%E9%A5%B0%E5%93%81%E5%90%88%E6%88%90">镜像迷宫E.G.O饰品合成</a>（含“主题卡包限定合成配方”）</p>
  <div id="recipeList"></div></section>
 </main>
