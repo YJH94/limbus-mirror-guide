@@ -3,8 +3,10 @@ const D=window.MD_DATA,G={},P={};D.gifts.forEach(g=>G[g.id]=g);D.packs.forEach(p
 const norm=s=>String(s||'').replace(/\s+/g,'');
 const XP=D.packs.filter(p=>p.floors.some(f=>f.modeIdx===3));
 const REWARD={},REWARD_OF={},HIDDEN=[];
+// Egogift rev 150931 写成「身负重担者们」，theme-floor rev 150930 的卡包 1512 仍是「身负重担的人们」。
+const REWARD_ALIAS={'身负重担者们':'身负重担的人们'};
 D.gifts.forEach(g=>{const sp=String(g.special||'');let m;
- if((m=sp.match(/^极限模式节点-(.+)$/))){const p=XP.find(p=>norm(p.name)===norm(m[1]));if(p){REWARD[p.id]=g;REWARD_OF[g.id]=p}}
+ if((m=sp.match(/^极限模式节点-(.+)$/))){const label=REWARD_ALIAS[m[1].trim()]||m[1];const p=XP.find(p=>norm(p.name)===norm(label));if(p){REWARD[p.id]=g;REWARD_OF[g.id]=p}}
  else if((m=sp.match(/^隐藏节点-(.+)$/)))HIDDEN.push({boss:m[1],g})});
 const srcLabel=g=>REWARD_OF[g.id]?`11-15F 通关奖励：${REWARD_OF[g.id].name}`:(HIDDEN.find(h=>h.g===g)?`隐藏 Boss：${HIDDEN.find(h=>h.g===g).boss}`:(g.special||''));
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -50,14 +52,15 @@ function renderFloor(){const fl=mode===0?[1,2,3,4,5].map(F=>({F,mi:0,lab:F+'F'})
   return `${rng?`<div class="sec-h" id="${id}">— 困难 ${lab}（${sub}）—</div>`:''}<div class="floor ${filt?'filt':''}"><h3>${lab} · ${filt?`${ps.length}/${all.length}`:ps.length} 个卡包 ${filt?'<span class="tag r">已按类别筛选</span>':(sel.size?'<span class="tag">前三层不筛选</span>':'')} ${lim.length?`<small>（限定此层：${lim.map(p=>esc(p.name)).join('、')}）</small>`:''}</h3><div class="row">${ps.map(p=>packCard(p,filt?hitsOf(p):null)).join('')||`<span class=hint>${filt?'没有专属饰品命中所选类别的卡包':'无'}</span>`}</div></div>`}).join('');
  if(mode===1)$('#floorList').insertAdjacentHTML('beforeend',hiddenBlock());
  $('#catInfo').innerHTML=sel.size?`已选：${[...sel].map(esc).join('、')} · 4F 起${mode?'（含 6-15F）':''}共显示 ${shown}/${total} 个卡包（同一卡包可出现在多层，按层重复计）`:'未选择类别：显示全部卡包'}
-function seasonBox(){const S=D.seasonInfo;if(!S)return;const np=S.newPacks.map(i=>P[i]).filter(Boolean),ng=S.newGifts.map(i=>G[i]).filter(Boolean),cg=S.changedGifts.map(i=>G[i]).filter(Boolean);
+function seasonBox(){const S=D.seasonInfo;if(!S)return;const np=S.newPacks.map(i=>P[i]).filter(Boolean),ng=S.newGifts.map(i=>G[i]).filter(Boolean),cg=S.changedGifts.map(i=>G[i]).filter(Boolean),sg=(S.syncGifts||[]).map(i=>G[i]).filter(Boolean);
  $('#seasonBox').innerHTML=`<div class="season"><img class="sban" src="${S.banner}" alt="西西弗之镜" onerror="this.remove()"><div class="sinfo">
- <h2>第${S.no}赛季 · ${esc(S.name)} <span class="tag">2026-10-15 开放</span></h2>
+ <h2>第${S.no}赛季 · ${esc(S.name)} <span class="tag">${esc(S.open)} 开放</span></h2>
  <ul><li>新增 <b>${np.length}</b> 个卡包 ${NEW}：${np.map(p=>`<span class="m" onclick="showPack(${p.id})">${esc(p.name)}</span>`).join('、')}（1 个普通/困难，3 个困难限定）</li>
  <li>新增 <b>${ng.length}</b> 件饰品 ${NEW}：${ng.map(g=>`<span class="m" data-gid="${g.id}" onclick="showGift('${g.id}')"><span class="exg"><img src="${g.img}" onerror="this.parentNode.remove()">${kwIcon(g.keyword,'sm')}</span>${esc(g.name)}</span>`).join('、')}；另有 ${cg.length} 件调整：${cg.map(g=>`<span class="m" data-gid="${g.id}" onclick="showGift('${g.id}')"><span class="exg"><img src="${g.img}" onerror="this.parentNode.remove()">${kwIcon(g.keyword,'sm')}</span>${esc(g.name)}</span>`).join('、')}</li>
+ ${sg.length?`<li>2026-11-08 维基同步新增 <b>${sg.length}</b> 件饰品 ${NEW}：${sg.map(g=>`<span class="m" data-gid="${g.id}" onclick="showGift('${g.id}')"><span class="exg"><img src="${g.img}" onerror="this.parentNode.remove()">${kwIcon(g.keyword,'sm')}</span>${esc(g.name)}</span>`).join('、')}</li>`:''}
  <li>敌人等级提升至 Lv65；困难模式可能出现「超级商店」（商品+3、可最多 5 件合成等），Boss 奖励饰品 4 选 2</li>
  <li>镜像投影/成就、极限模式隐藏 Boss 官方称之后实装</li></ul>
- <p class="hint">数据：灰机维基 ${esc(S.revs.themes)}、${esc(S.revs.gifts)}、${esc(S.revs.enemy)}；${esc(S.revs.giftchoose)}。机制说明参考 <a target="_blank" href="${S.notice}">官方公告</a> 与 <a target="_blank" href="${S.wikigg}">wiki.gg</a>。最后更新：2026-10-19（北京时间）</p></div></div>`}
+ <p class="hint">数据：灰机维基 ${esc(S.revs.themes)}、${esc(S.revs.gifts)}${S.revs.recipes?'、'+esc(S.revs.recipes):''}、${esc(S.revs.enemy)}；${esc(S.revs.giftchoose)}。机制说明参考 <a target="_blank" href="${S.notice}">官方公告</a> 与 <a target="_blank" href="${S.wikigg}">wiki.gg</a>。最后更新：${esc(S.updated||'')}</p></div></div>`}
 seasonBox();
 const HJ='https://limbuscompany.huijiwiki.com/wiki/',WG='https://limbuscompany.wiki.gg/wiki/';
 const HB_SRC={hj:[HJ+'%E5%90%8D%E4%B8%8E%E8%9B%9B%E4%B9%8B%E9%95%9C','灰机·名与蛛之镜「隐藏节点」rev 133560'],wgmd:[WG+'Mirror_Dungeon','wiki.gg·Mirror Dungeon rev 198583'],gf:['https://gamesfuze.com/guides/limbus-company-how-to-find-every-secret-boss/','GamesFuze 隐藏Boss指南'],
@@ -170,7 +173,7 @@ function showPack(id){const p=P[id];const ex=p.exclusive.map(i=>G[i]).filter(Boo
  ${REWARD[id]?`<h4>🏆 通关固定奖励 <small>（沿用上赛季数据，新赛季待确认）</small></h4><div class="ggrid"><div class="gc rwc" onclick="showGift('${REWARD[id].id}')" data-gid="${REWARD[id].id}">${gIcon(REWARD[id])}<div><div class="t">${esc(REWARD[id].name)}${tierTxt(REWARD[id].tier)}</div>${kwTag(REWARD[id].keyword)}<span class="tag h">击败关底 Boss 后自动获得</span><div class="d">${esc(REWARD[id].desc)}</div></div></div></div>`:''}
  <h4>⭐ 专属饰品（${ex.length}）</h4><div class="ggrid">${ex.map(g=>`<div class="gc" onclick="showGift('${g.id}')" data-gid="${g.id}">${gIcon(g)}<div><div class="t">${esc(g.name)}${tierTxt(g.tier)}</div>${kwTag(g.keyword)}<div class="d">${esc(g.desc)}</div></div></div>`).join('')||'<span class=hint>该卡包无专属饰品（仅通用饰品池）</span>'}</div>
  ${packEvents(id)}
- <p class="hint">通用饰品池 ${p.pool.length} 件 · 来源：<a target="_blank" href="${D.sources.themes}">Data:Mirrordungeon-theme-floor.json（oldid=133145）</a>、<a target="_blank" href="https://limbuscompany.huijiwiki.com/wiki/%E9%95%9C%E5%83%8F%E8%BF%B7%E5%AE%AB-%E6%95%8C%E6%96%B9%E6%95%B0%E6%8D%AE">镜像迷宫-敌方数据</a></p>`)}
+ <p class="hint">通用饰品池 ${p.pool.length} 件 · 来源：<a target="_blank" href="${D.sources.themes}">Data:Mirrordungeon-theme-floor.json</a>、<a target="_blank" href="https://limbuscompany.huijiwiki.com/wiki/%E9%95%9C%E5%83%8F%E8%BF%B7%E5%AE%AB-%E6%95%8C%E6%96%B9%E6%95%B0%E6%8D%AE">镜像迷宫-敌方数据</a></p>`)}
 // nav
 document.querySelector('nav').onclick=e=>{const v=e.target.dataset.v;if(!v)return;document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b===e.target));document.querySelectorAll('.view').forEach(s=>s.classList.toggle('on',s.id==='v-'+v));location.hash=v;if(v==='floor')saveCats()};
 function route(){const h=location.hash.slice(1),v=h.split('?')[0];const b=document.querySelector(`nav button[data-v="${v}"]`);
@@ -255,7 +258,7 @@ function renderEvents(){const q=$('#eq').value.trim(),qn=SN(q),pk=$('#ePack').va
   +(ge.length?`<div class="sec-h" id="sec-generic">🌐 通用事件（${ge.length}）</div><p class="hint">不属于任何卡包专属池的事件，按维基「镜像迷宫」各赛季分节归类（表示该事件引入的赛季）。</p>`+Object.keys(byGrp).map(g=>`<div class="floor"><h3>通用 · ${esc(g)} <small>${byGrp[g].length} 个</small></h3><div class="evl">${byGrp[g].map(card).join('')}</div></div>`).join(''):'')
   ||'<p class="hint">没有匹配的事件。</p>');
  const full=EV.filter(e=>e.hasDetail).length;
- $('#eInfo').innerHTML=`共 ${EV.length} 个事件：主题包专属 ${EV.filter(e=>e.kind==='exclusive').length}、通用 ${EV.filter(e=>e.kind==='generic').length}；已录入选项/奖励 ${full}，未录入 ${EV.length-full}。当前显示 ${ex.length+ge.length}。来源：<a target="_blank" href="${EVURL}%E6%8E%A2%E7%B4%A2%E4%BA%8B%E4%BB%B6">探索事件</a>（rev 149995）+ 主题包数据 specialEventPool（rev 149992）。`}
+ $('#eInfo').innerHTML=`共 ${EV.length} 个事件：主题包专属 ${EV.filter(e=>e.kind==='exclusive').length}、通用 ${EV.filter(e=>e.kind==='generic').length}；已录入选项/奖励 ${full}，未录入 ${EV.length-full}。当前显示 ${ex.length+ge.length}。来源：<a target="_blank" href="${EVURL}%E6%8E%A2%E7%B4%A2%E4%BA%8B%E4%BB%B6">探索事件</a>（rev 149995，正文未随本次同步改写）+ 主题包 specialEventPool（随卡包数据 rev 150930，事件池无变化）。`}
 ['input','change'].forEach(t=>{$('#eq').addEventListener(t,renderEvents);});$('#ePack').onchange=renderEvents;$('#eKind').onchange=renderEvents;renderEvents();
 
 // ===== page zoom =====
