@@ -44,11 +44,7 @@
 
 ## 图片
 
-9301、9302 的文件在灰机上是存在的，但本环境访问 `huiji-public.huijistatic.com` 会被 Cloudflare 拦截，两张 webp 没有放进仓库。页面会显示「无图」。校验和：
+9301、9302 已从灰机下载（PNG sha1 校验通过）并写入 `assets/gifts/9301.webp`、`assets/gifts/9302.webp`（2026-11-13）。
 
-- 饰品-9301.png sha1 `76801b490f071d60ad6f53e519121ccaead1a6c2`  
-  <https://huiji-public.huijistatic.com/limbuscompany/uploads/9/96/%E9%A5%B0%E5%93%81-9301.png>
-- 饰品-9302.png sha1 `278c9fedeb241d12ada6200a519049c0eef5246d`  
-  <https://huiji-public.huijistatic.com/limbuscompany/uploads/6/6d/%E9%A5%B0%E5%93%81-9302.png>
-
-放进 `assets/gifts/9301.webp` 与 `assets/gifts/9302.webp` 后即可显示。
+- 饰品-9301.png sha1 `76801b490f071d60ad6f53e519121ccaead1a6c2`
+- 饰品-9302.png sha1 `278c9fedeb241d12ada6200a519049c0eef5246d`
